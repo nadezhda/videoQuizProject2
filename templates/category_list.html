@@ -1,0 +1,16 @@
+{% extends 'rest_framework/base.html' %}
+{% load url from future %}
+
+{% load static %}
+
+{% block title %} Category List {% endblock %}
+
+
+{% block page_content %}
+    <ul>
+    {% for category in categories %}
+     <li><a href="/categories/{{ category.id }}">{{ category.name }}</a></li>
+{#     <li><a href="{% url 'category-list' category.id %}">{{ category.name }}</a></li>#}
+    {% endfor %}
+    </ul>
+{% endblock %}

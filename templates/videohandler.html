@@ -1,0 +1,483 @@
+<script type="text/javascript">
+$(window).load(function(){
+
+	//-------------------------------------
+	// GLOBAL VARIABLES
+	//-------------------------------------
+	markerBreaks = []; // points of markers' location
+	replayTime = []; // time to return to
+	removedMarkers = []; // Markers which has already passed
+    removedReplayTime = []; // Replay time which has already passed
+    correctAnswersNum = 0;
+    finalMarks = 0;
+
+	//-------------------------------------
+    // Get and parse markerTime and replayTIme parameters from hidden div
+	//-------------------------------------
+    var paramFieldValues = $( "div#run-replaytime" ).text().slice( 0, -1 );
+    var parameters = '['+ paramFieldValues + ']';
+    var obj  = $.parseJSON(parameters);
+
+    // Create arrays of markers and replay times
+    for (var i=0; i< obj.length; i++){
+        markerBreaks.push(parseInt(obj[i].markertime));
+        replayTime.push(parseInt(obj[i].replaytime));
+    }
+
+	//-------------------------------------
+    // Get DOM elements from HTML
+	//-------------------------------------
+	var video = videojs("my-video");
+	var overlay= document.getElementById('video-overlay');
+
+    videojs('my-video').ready(function() {
+        controlBar = document.getElementsByClassName('vjs-control-bar')[0];
+    });
+
+    var replayButton = document.getElementById('replay-btn');
+	var answerButton = document.getElementById('answer-btn');
+	var showAnswerButton = document.getElementById('show-answer-btn');
+	var skipButton = document.getElementById('skip-btn');
+    var feedbackDiv = $('div#feedback');
+
+    // jQuery formatted selector to search for focusable items
+    var focusableElementsString ="a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, *[tabindex], *[contenteditable]";
+
+    // store the item that has focus before opening the modal window
+    var focusedElementBeforeModal;
+
+    $('#video-overlay').keydown(function(event){trapTabKey($(this),event);});
+
+	//-------------------------------------
+    var usingSafari = function (){
+        var ua = navigator.userAgent.toLowerCase();
+        if (ua.indexOf('safari')!=-1){
+            if(ua.indexOf('chrome')  > -1){
+                return false; // chrome
+            }else{
+                return true; // safari
+            }
+        } else {
+            return false;
+        }
+    };
+
+
+    var trapTabKey = function (obj,evt) {
+
+        // if tab or shift-tab pressed
+        if ( evt.which == 9 ) {
+
+            // get list of all children elements in given object
+            var o = obj.find('*');
+
+            // get list of focusable items
+            var focusableItems;
+            focusableItems = o.filter(focusableElementsString).filter(':visible');
+
+            // get currently focused item
+            var focusedItem;
+            focusedItem = jQuery(':focus');
+
+            // get the number of focusable items
+            var numberOfFocusableItems;
+            numberOfFocusableItems = focusableItems.length;
+
+            // get the index of the currently focused item
+            var focusedItemIndex;
+            focusedItemIndex = focusableItems.index(focusedItem);
+
+            if (evt.shiftKey) {
+                //back tab
+                // if focused on first item and user preses back-tab, go to the last focusable item
+                if(focusedItemIndex==0){
+                    focusableItems.get(numberOfFocusableItems-1).focus();
+                    evt.preventDefault();
+                }
+
+            } else {
+                //forward tab
+                // if focused on the last item and user preses tab, go to the first focusable item
+                if(focusedItemIndex==numberOfFocusableItems-1){
+                    focusableItems.get(0).focus();
+                    evt.preventDefault();
+                }
+            }
+        }
+    };
+
+
+    var showModal = function (obj) {
+        controlBar.style.display='none'; //hide progress bar
+        answerButton.style.display = 'block'; // display 'Answer' button
+        replayButton.style.display = 'block'; // display 'Replay' button
+        showAnswerButton.style.display = 'block'; // display 'Show Answer' button
+        $('#skip-btn').html('Skip <i class="fa fa-forward"></i>'); // set name 'Skip' for button
+        overlay.style.display= 'block'; // display overlay
+        $('#main-page-container').attr('aria-hidden','true'); // mark the main page as hidden
+        $('#video-overlay').attr('aria-hidden','false'); // mark the modal window as visible
+
+        // save current focus
+	    focusedElementBeforeModal = $(':focus');
+
+        // get list of all children elements in given object
+	    var o = obj.find('*');
+
+        // Safari and VoiceOver shim
+        // if VoiceOver in Safari is used, set the initial focus to the modal window itself instead of the first keyboard focusable item. This causes VoiceOver to announce the aria-labelled attributes. Otherwise, Safari and VoiceOver will not announce the labels attached to the modal window.
+        if(usingSafari()){
+            // set a tabIndex of -1 to the modal window itself so we can set the focus on it
+            jQuery('#video-overlay').attr('tabindex','-1');
+
+            // set the focus to the modal window itself
+            obj.focus();
+        } else {
+            // set the focus to the first keyboard focusable item
+            o.filter(focusableElementsString).filter(':visible').first().focus();
+        }
+    };
+
+    var hideModal = function(){
+        overlay.style.display= 'none';
+        controlBar.style.display='block';
+        $('#main-page-container').attr('aria-hidden','false'); // mark the main page as visible
+        $('#video-overlay').attr('aria-hidden','true'); // mark the modal window as hidden
+        video.play();
+
+    };
+
+    // Hide feedback if user tries answer again
+    $("#answer-block").click( function(){
+        feedbackDiv.empty();
+    });
+
+
+    var questionConstructor = function(marker){
+        /**
+        * --------------------------------------------------
+        * Construct questions and related answers
+        * ---------------------------------------------------
+        */
+        var modalDescriptionDiv = $("#modalDescription");
+        var questionDiv =  $( "div#question-title" );
+        var answerDiv = $("div#answer-block");
+
+        questionDiv.empty();
+        answerDiv.empty();
+        feedbackDiv.empty();
+
+        {% for question in section.questions.all %}
+            var datamarkerTime = {{ question.markerTime }};
+
+            if (datamarkerTime ==  marker){
+
+                {% ifequal datamarkerTime marker %}
+                    modalDescriptionDiv.append('Beginning of dialog window. It begins with a heading 1 called "{{ question.question }}". Give the answer and click on Answer button. To check the correct answer press "Show answer". To replay previous fragment of the video, press "Replay" button. "Skip" button will skip a question and close the window.');
+                    questionDiv.append('{{ question.question }}');
+                    questionDiv.append("<div id='questionID'>{{ question.id }}</div>");
+                    {% for answer in question.answers.all %}
+                        {# if question has multiple choice answers #}
+                        {% if question.quiz_type.id == 3 %}
+                            answerDiv.append("<div class='row'><div class='radio answer-group col-md-12'><label class='answer-label col-md-9' for='question_{{forloop.counter}}'><input class='answerItem col-md-1' name='radio-answers' id='question_{{forloop.counter}}' value='{{ answer.answer}}' type='radio'/>{{ answer.answer }}</label></div></div>");
+                            {# if question has multiple response answers #}
+                        {% else %}
+                            answerDiv.append("<div class='row'><div class='checkbox answer-group col-md-12'><label class='answer-label col-md-9' for='question_{{forloop.counter}}'><input class='answerItem col-md-1' name='checkbox-answers' id='question_{{forloop.counter}}' value='{{ answer.answer}}' type='checkbox' />{{ answer.answer }}</label></div></div>") ;
+                        {% endif %}
+                    {% endfor %}
+                {% endifequal %}
+            }
+        {% endfor %}
+    };
+
+
+	videojs('my-video').ready(function(){
+		this.on("progress", onProgress); // add handler onProgress
+		this.on("ended", displayFeedback); // add handler onProgress
+
+	});
+
+    {#  Final feedback about user performance  #}
+    displayFeedback = function(){
+        var totalQuestionNumber = parseInt('{{ section.questions.all|length }}');
+        var accuracy = (correctAnswersNum*100/totalQuestionNumber).toFixed(2);
+
+        var modalDescriptionDiv = $("#modalDescription");
+        var questionDiv =  $( "div#question-title" );
+        var answerDiv = $("div#answer-block");
+
+        questionDiv.empty();
+        answerDiv.empty();
+        feedbackDiv.empty();
+
+        modalDescriptionDiv.append('Beginning of dialog window. It begins with a heading 1 called "Results". It provides final feedback about your performance. To close the window click on button "Close"');
+        questionDiv.append('<h3 class="col-md-offset-2"><i class="fa fa-book"></i> Results: </h3>');
+        answerDiv.append("<div class='row'><div class='col-md-offset-2'><div>Number of correct answers: "+ correctAnswersNum + " out of " + totalQuestionNumber + "</div><div>Answer accuracy:" + accuracy + "%</div><div>Final marks: "+ finalMarks +"</div></div></div>");
+
+        showModal($('#video-overlay'));
+
+        answerButton.style.display = 'none';
+        replayButton.style.display = 'none';
+        showAnswerButton.style.display = 'none';
+        $('#skip-btn').html('Close <i class="fa fa-forward"></i>');
+
+    };
+
+
+    $("#my-video_youtube_api" ).click(function( event ) {
+{#        event.preventDefault();#}
+        $("#video-overlay").css('display','none');
+        controlBar.style.display='none';
+    });
+
+
+	function onProgress() {
+		/**
+		* --------------------------------------------------
+		* Go through the video play with markers and pop-up questions
+		* ---------------------------------------------------
+		*/
+		var markers = markerBreaks;
+//        var replay_time = replayTime;
+		var curTime = video.currentTime();
+		console.log("current time =" + curTime);
+
+		var lengthOfVideo = video.duration();
+		console.log("video length =" + lengthOfVideo);
+
+		// if user jump to previous parts of the video,
+		// return removed earlier markers
+		for(var j=0; j < removedMarkers.length; j++){
+			if(curTime <= removedMarkers[j]){
+				markers.unshift(removedMarkers.splice(0,1));
+                replayTime.unshift(removedReplayTime.splice(0,1));
+                break;
+			}
+		}
+//		console.log("updated removed replay time  =" + removedMarkers);
+{#		console.log("updated replay time=" + replayTime);#}
+{##}
+{#		console.log("updated removed markers  =" + removedReplayTime);#}
+//		console.log("updated markers =" + markers);
+
+	    // if marker is found, pause the video and display overlay
+	    for (var i=0; i < markers.length; i++){
+	    	var marker = markers[i];
+//   			console.log("marker time = " + marker);
+
+	    	// If marker found
+	    	if (curTime >= marker){
+			    video.pause();
+			    if(Math.floor(curTime) == marker && Math.round(curTime) == marker){ // TODO Check hot it is work
+                    questionConstructor(marker); // construct the question
+
+                    showModal($('#video-overlay'));
+                    curTime = curTime + 0.5;
+{#				 	controlBar.style.display='none';#}
+{##}
+{#                    answerButton.style.display = 'block';#}
+{#                    replayButton.style.display = 'block';#}
+{#                    showAnswerButton.style.display = 'block';#}
+{#                    $('#skip-btn').html("Skip");#}
+{##}
+{#                    overlay.style.display= 'block';#}
+{#                    $('#main-page-container').attr('aria-hidden',true);#}
+			    }
+			    else{
+			    	overlay.style.display= 'none';
+			    }
+			    removedMarkers.unshift(markers.splice(0,1));
+                removedReplayTime.unshift(replayTime.splice(0,1));
+//			    console.log("removed markers = " + removedMarkers + '(' + removedMarkers.length + ')');
+//			    console.log("removed replay time = " + removedReplayTime + '(' + removedReplayTime.length + ')');
+			}
+
+			// if markers do not exist, play video
+{#			if(marker.length == 0){#}
+{#				video.play();#}
+{#			}#}
+   		}
+
+{#        if(curTime >= lengthOfVideo){#}
+{#            console.log("Time to display feedback");#}
+{#        }#}
+	}
+
+    skipButton.addEventListener('click',function(e){
+		/**
+		* --------------------------------------------------
+		* "Skip" button handler
+		* ---------------------------------------------------
+		*/
+        hideModal();
+{#        video.play();#}
+{#        overlay.style.display= 'none';#}
+{#        controlBar.style.display='block';#}
+{#        console.log("--> Skip func");#}
+    });
+
+
+	replayButton.addEventListener('click',function(e){
+		/**
+		* --------------------------------------------------
+		* "Replay" button handler
+		* ---------------------------------------------------
+		*/
+        video.currentTime(removedReplayTime[0]);
+        hideModal();
+	});
+
+
+    answerButton.addEventListener('click',function(e){
+		/**
+		* --------------------------------------------------
+		* "Answer" button handler
+		* ---------------------------------------------------
+		*/
+        // get all checked values
+        var checkedValues = $('.answerItem:checked').map(function() {
+            return this.value;
+        }).get();
+        //console.log(checkedValues);
+
+        var flag = false;
+        var CorrectAnswersNum = 0;
+
+        // get question ID
+        var currentQuestion = parseInt($('#questionID').html());
+        // console.log(currentQuestion);
+
+        {% for question in section.questions.all %}
+            var questionID = parseInt('{{ question.id }}');
+            if( questionID == currentQuestion){
+{#                console.log('Find right question');#}
+
+                {% for answer in question.answers.all %}
+                    var sampleAnswer = '{{answer.answer}}';
+                    // Check number of correct answers in the database
+                    if ('{{ answer.is_answer_correct }}'== 'True'){
+                        CorrectAnswersNum++;
+                    }
+
+                    // Check number correct answers more than checked => Wrong
+                    if(CorrectAnswersNum > checkedValues.length){
+                        feedbackDiv.empty();
+                        feedbackDiv.append('<div class="alert alert-danger" role="alert">{{ question.hint }}</div>');
+                        flag = false;
+                        return;
+                    }
+
+                    for (var i=0; i< checkedValues.length; i++){ //TODO test it as i changed <= to <
+                        var checkedAnswer = checkedValues[i];
+
+                        if(checkedAnswer == sampleAnswer){
+                            var correctAnswer = '{{ answer.is_answer_correct }}';
+
+                            if (correctAnswer == "False"){ // if one of the answers wrong
+{#                                console.log('{{ question.hint }}');#}
+                                feedbackDiv.empty();
+                                feedbackDiv.append('<div class="alert alert-danger" role="alert">{{ question.hint }}</div>');
+                                flag = false;
+                                return;
+                            }
+
+                            if (correctAnswer == "True"){
+                                flag = true;
+                            }
+                        }
+                    }
+                {% endfor %}
+                if(flag){
+                    feedbackDiv.empty();
+                    feedbackDiv.append('<div class="alert alert-success" role="alert">{{ question.feedback }}</div>');
+                    answerButton.style.display = 'none';
+                    replayButton.style.display = 'none';
+                    showAnswerButton.style.display = 'none';
+                    $('#skip-btn').html('Continue <i class="fa fa-forward"></i>');
+
+                    correctAnswersNum++;
+
+                    var questionValue = parseInt('{{ question.value }}');
+                    finalMarks += questionValue;
+
+                }
+            }
+        {% endfor %}
+    });
+
+
+    showAnswerButton.addEventListener('click',function(e){
+		/**
+		* --------------------------------------------------
+		* "Show Answer" button handler
+		* ---------------------------------------------------
+		*/
+        // get values of all answers
+        var answerValues = $('.answerItem').map(function() {
+            return this.value;
+        }).get();
+
+        // get question ID
+        var currentQuestion = parseInt($('#questionID').html());
+
+        {% for question in section.questions.all %}
+            // get question Id from the model
+            var questionID = parseInt('{{ question.id }}');
+            if( questionID == currentQuestion){
+                console.log('Find right question');
+
+                {% for answer in question.answers.all %}
+                    // get correct answers from the model
+                    var correctAnswer = '{{ answer.is_answer_correct }}';
+                   // console.log('Correct answer ' + correctAnswer);
+
+                    if(correctAnswer == "True"){
+                        var sampleAnswer = '{{answer.answer}}';
+                        console.log('Correct answer ' + sampleAnswer +' ' + correctAnswer);
+                        for(var i=0; i < answerValues.length; i++){
+                            var answer = answerValues[i];
+                            console.log('Checked answer ' + answer);
+                            if (answer == sampleAnswer) {
+                                feedbackDiv.empty();
+                                $( "div.answer-group" ).eq( i ).addClass("has-success");
+                                $("div.answer-group").eq( i ).append("<div class='col-md-2'><i class ='fa fa-check pull-right'></i></div>");
+                                answerButton.style.display = 'none';
+                                replayButton.style.display = 'none';
+                                showAnswerButton.style.display = 'none';
+                                $('#skip-btn').html('Continue <i class="fa fa-forward"></i>');
+                            }
+                        }
+                    }
+                {% endfor %}
+            }
+        {% endfor %}
+    });
+
+	//onProgress();
+
+	videojs('my-video').ready(function(){
+
+		// Load markers
+		this.markers({
+		  setting: {
+		    //set style, markertip, and breakOverlay
+		    markerStyle: {
+		      'width':'8px',
+		      'background-color': 'orange'
+		    },
+		    markerTip:{
+		      display: true,
+		      default_text: "",
+		      show_colon: false
+		    },
+
+		    forceInitialization: true // doesn't wait for loadedmetadata event
+		  },
+		  marker_breaks: markerBreaks,
+		  marker_text  :['Question 1','Question 2','Question 3','Question 4'] //TODO
+		}); //---> end markers
+
+        $('#my-video_youtube_api').attr('tabindex','-1');
+
+	});
+});
+</script>

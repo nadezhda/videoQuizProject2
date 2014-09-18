@@ -1,0 +1,37 @@
+{% load static %}
+<div id="qunit"></div>
+<div id="qunit-fixture"></div>
+<script src="{% static 'qunit/qunit.js' %}"></script>
+{#<script src="{% static 'qtests/tests.js' %}"></script>#}
+
+<script>
+QUnit.module( "Data tests" );
+QUnit.test("Existence of section elements", function (assert) {
+    ok($("#main-page-container > h1").text(), "Pass! - section has a title");
+    ok($("#main-page-container > p").text(), "Pass! - section has a description");
+    ok($("#my-video"), "Pass! - section contains video");
+});
+
+{#--------------------------------------------#}
+QUnit.module( "Video tests" );
+QUnit.test("Video elements existence", function (assert) {
+    ok('{{ section.video_url }}', "Pass! - video has URL");
+    ok('{{ section.questions.all }}', "Pass! - video has questions");
+    ok(markerBreaks, "Pass! - video has markers");
+
+
+});
+
+QUnit.test("A number of question and markers is equal", function (assert) {
+    var num = 0;
+    var $markers_num;
+    if($("#my-video")){
+        {% for question in section.questions.all%}
+            num++;
+        {% endfor %}
+        $markers_num = markerBreaks.length;
+    }
+    equal(num,$markers_num,"Pass! - a number of markers = a number of questions");
+});
+
+</script>

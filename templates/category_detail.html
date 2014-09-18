@@ -1,0 +1,13 @@
+{% extends 'rest_framework/base.html' %}
+{% load url from future %}
+{% load static %}
+
+{% block title %} It is my template {% endblock %}
+
+
+{% block page_content %}
+  <h1><a href="{% url 'category-detail' category.id %}">{{ category.name }}</a></h1>
+
+
+
+{% endblock %}

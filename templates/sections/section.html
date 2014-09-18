@@ -1,0 +1,58 @@
+{% extends 'rest_framework/base.html' %}
+{% load static %}
+{% load url from future %}
+
+{% block title %}{{ section.title}}{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+
+{% block section_title %}<h3 class="col-md-8 col-md-offset-2" style="padding-left: 30px;">{{ section.title}}</h3>{% endblock %}
+
+{% block section_description %}
+    {% if section.description|length > 0 %}
+       <p class="col-md-8 col-md-offset-2" style="padding-left: 30px;">{{ section.description }}</p>
+    {% endif %}
+{% endblock %}
+
+{% block page_content %}
+
+<div class= 'container '>
+<div class="wrapper col-md-8 col-md-offset-2">
+    <div class="videocontent embed-responsive embed-responsive-16by9">
+        <video id="my-video" src="" class="video-js vjs-default-skin vjs-big-play-centered embed-responsive-item" controls preload="auto" width='auto' height='auto'
+        data-setup='{ "techOrder": ["youtube"], "src": "{{ section.video_url }}","seek_param": "time" }'>
+        </video>
+        <div id="video-overlay" aria-hidden="true" aria-labelledby="modalDescription question-title" role="dialog">
+            <div id="modalDescription" class="screen-reader-offscreen"></div>
+            <form class="form-inline"  role="form">
+                {# Question loop  #}
+                <div id="question-title">{# Question #}</div>
+
+                <div class="control-group form-group  col-md-12">
+                    <div id="feedback"></div>
+                    {# -- Multiple Radios --  #}
+                    <div id="answer-block" class="controls">
+
+                        {% for question in section.questions.all %}
+                            {#  Hidden fiels with marker time and replay time   #}
+                            <div id="run-replaytime">{"markertime":"{{question.markerTime}}","replaytime":"{{question.replayTime}}","questionValue":"{{question.value}}"},</div>
+                        {% endfor %}
+
+                    </div>
+                </div>
+
+            </form>
+            <div class="row btn-group">
+                <button id='replay-btn' class="btn  btn-default btn-sm"><i class="fa fa-backward"></i> Replay</button>
+                <button id='answer-btn' class="btn btn-success btn-sm">Answer</button>
+                <button id='show-answer-btn' class="btn btn-info btn-sm"><i class="fa fa-info-circle"></i> Show answer</button>
+                <button id='skip-btn' class="btn  btn-default btn-sm">Skip <i class="fa fa-forward"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+{#{% include "sections/tests.html" %}#}
+{% include "videohandler.html" %}
+
+{% endblock %}

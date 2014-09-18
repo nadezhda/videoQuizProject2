@@ -1,0 +1,116 @@
+{% extends 'rest_framework/base.html' %}
+{% load static %}
+{% load url from future %}
+
+{% block title %}{{ section.title}}{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+
+{% block section_title %}<h2 style="padding-left: 30px;padding-right: 30px;">{{ section.title}}</h2>{% endblock %}
+
+{% block section_description %}
+    {% if section.description|length > 0 %}
+       <p class="col-md-7" style="padding-left: 30px; padding-right: 30px;">{{ section.description }}</p>
+    {% endif %}
+{% endblock %}
+
+{% block page_content %}
+
+<div class= 'container ' >
+    <div class="wrapper col-md-6">
+        <div class="videocontent embed-responsive embed-responsive-16by9">
+            <video id="my-video" src="" class="video-js vjs-default-skin vjs-big-play-centered embed-responsive-item" controls preload="auto" width='auto' height='auto'
+            data-setup='{ "techOrder": ["youtube"], "src": "{{ section.video_url }}","seek_param": "time" }'>
+            </video>
+            <div id="video-overlay" aria-hidden="true" aria-labelledby="modalDescription question-title" role="dialog">
+                <div id="modalDescription" class="screen-reader-offscreen"></div>
+                <form class="form-inline"  role="form">
+                    {# Question loop  #}
+                    <div id="question-title">{# Question #}</div>
+
+                    <div class="control-group form-group  col-md-12">
+                        <div id="feedback"></div>
+                        {# -- Multiple Radios --  #}
+                        <div id="answer-block" class="controls">
+
+                            {% for question in section.questions.all %}
+                                {#  Hidden fiels with marker time and replay time   #}
+                                <div id="run-replaytime">{"markertime":"{{question.markerTime}}","replaytime":"{{question.replayTime}}"},</div>
+                            {% endfor %}
+
+                        </div>
+                    </div>
+
+                </form>
+                <div class="row btn-group">
+                    <button id='replay-btn' class="btn  btn-default btn-sm"><i class="fa fa-backward"></i> Replay</button>
+                    <button id='answer-btn' class="btn btn-success btn-sm">Answer</button>
+                    <button id='show-answer-btn' class="btn btn-info btn-sm"><i class="fa fa-info-circle"></i> Show answer</button>
+                    <button id='skip-btn' class="btn  btn-default btn-sm">Skip <i class="fa fa-forward"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# List of questions #}
+    <h3>Related Questions: </h3>
+    <div class="wrapper col-md-6">
+        {% if section.questions.all|length == 0 %}
+            <p style="text-align: center; font-style: italic;">No questions are found</p>
+        {% else %}
+
+            <ul class="question-list">
+                {% for question in section.questions.all %}
+
+                    <div class="row">
+        {#              <div class="col-md-8"><li><a href='/owner/sections/{{ question.id }}'>{{ question.title }}</a></li></div>#}
+                        <div class="col-md-8"><li><a href="#">{{ question.question }}</a></li></div>
+                        <div class="col-md-4">
+
+        {#                <a href="{% url 'question_create' section.id %}" id='create-qs-btn' class="btn  btn-success btn-sm" title="Add question"><i class="fa fa-question-circle"></i> </a>#}
+        {#                <a href="{% url 'section_edit' section.id %}" id='edit-btn' class="btn  btn-primary btn-sm" title="Update section"><i class="fa fa-edit"></i> </a>#}
+                          <a href="{% url 'question_delete' question.id %}" id='delete-btn' class="btn btn-danger btn-sm" data-toggle="modal" data-target="#modal-{{question.id}}" title="Delete question"><i class="fa fa-trash-o"></i></a>
+
+                        </div>
+                   </div>
+                {% endfor %}
+
+            </ul>
+        {% endif %}
+        <a href="{% url 'question_create' section.id %}" id='create-qs-btn' class="btn  btn-success btn-sm col-lg-offset-1" title="Add question"><i class="fa fa-question-circle"></i> Add question </a>
+
+    </div>
+
+</div>
+
+<!-- Modal confirmation -->
+{% for question in section.questions.all %}
+<div class="modal fade modal-dialog-center" id="modal-{{question.id}}" tabindex="-1" role="dialog" aria-labelledby="modalBoxConfirmation" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="well">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">
+            <span aria-hidden="true">&times;</span>
+            <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title">Delete confirmation</h4>
+      </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete a question: "{{ question.question }}"? </p>
+        </div>
+        <form action="{% url 'question_delete' question.id %}" method="post">{% csrf_token %}
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-danger">Delete</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </form>
+    </div>
+
+    </div>
+</div>
+{% endfor %}
+
+
+{#{% include "sections/tests.html" %}#}
+{% include "videohandler.html" %}
+
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'rest_framework/login_base.html' %}
+{% load static %}
+{% block bootstrap_theme %}
+    <link href="{% static 'bootstrap-3.2.0-dist/css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
+    <link href="{% static 'bootstrap-3.2.0-dist/css/bootstrap-theme.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/quizzi.css' %}" rel="stylesheet">
+    <link href="{% static 'css/navbar-fixed-top.css'%}" rel="stylesheet">
+
+{% endblock %}
+
+{%block login_body%}
+     <body class="container">
+        <div class="container-fluid" style="margin-top: 30px">
+            <div class="row-fluid">
+                <div class="well" style="width: 320px; margin-left: auto; margin-right: auto; border: 1px solid #E05B5B;">
+                    <div class="row-fluid">
+                        <div>
+                            {% block branding %}<h3 style="margin: 0; color: #592323;"> Login to Quizzi </h3>{% endblock %}
+                        </div>
+                    </div><!-- /row fluid -->
+
+                    <div class="row-fluid">
+                        <div>
+                            <form action="{% url 'rest_framework:login' %}" class="form-group" method="post">
+                                {% csrf_token %}
+                                <div id="div_id_username" class="clearfix control-group" style="margin-top:10px;">
+                                    <div class="controls">
+                                        <label>Username:</label>
+                                        <input  type="text" name="username" maxlength="100" autocapitalize="off" autocorrect="off" class="form-control" id="id_username" placeholder="Enter username">
+                                    </div>
+                                </div>
+                                <div id="div_id_password" class="clearfix control-group" style="margin-top:10px;">
+                                    <div class="controls">
+                                        <label>Password:</label>
+                                        <input  type="password" name="password" maxlength="100" autocapitalize="off" autocorrect="off" class="form-control" id="id_password" placeholder="Password">
+                                    </div>
+                                </div>
+                                <input type="hidden" name="next" value="{{ next }}" />
+                                <div class="form-actions-no-box" style="margin-top:10px;">
+                                    <input type="submit" name="submit" value="Sign in" class="btn btn-primary btn-block" id="submit-id-submit">
+                                    <a href="/" id='cancel-btn' class="btn  btn-default btn-block" title="Cancel"><i class="fa fa-times"></i> Cancel</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div><!-- /.row-fluid -->
+                </div><!--/.well-->
+            </div><!-- /.row-fluid -->
+        </div><!-- /.container-fluid -->
+     </body>
+    {% endblock %}

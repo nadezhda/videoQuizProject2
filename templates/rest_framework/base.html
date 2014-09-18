@@ -1,0 +1,313 @@
+{% load url from future %}
+{% load rest_framework %}
+<!DOCTYPE html>
+<html>
+    <head>
+    {% block head %}
+
+        {% block meta %}
+            <meta name="robots" content="NONE,NOARCHIVE" />
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta name="description" content="">
+            <meta name="author" content="">
+
+        {% endblock %}
+
+        <title>Quizzi: {% block title %}{% endblock %}</title>
+
+        {% block style %}
+            {% block bootstrap_theme %}
+    {#            <link rel="stylesheet" type="text/css" href="{% static "rest_framework/css/bootstrap.min.css" %}"/>#}
+                <link href="{% static 'bootstrap-3.2.0-dist/css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
+                <link href="{% static 'bootstrap-3.2.0-dist/css/bootstrap-theme.min.css' %}" rel="stylesheet">
+                <link href="{% static 'videojs/video-js/video-js.css' %}" rel="stylesheet">
+                <link href="{% static 'videojs/plugins/video-markers/videojs.markers.css' %}" rel="stylesheet">
+                <link href="{% static 'videojs/plugins/video-overlay/videojs-overlay.css' %}" rel="stylesheet">
+                <link href="{% static 'font-awesome-4.1.0/css/font-awesome.min.css' %}" rel="stylesheet">
+                <link href="{% static 'qunit/qunit.css' %}" rel="stylesheet">
+
+                <!-- Custom styles for this template -->
+                <link href="{% static 'css/quizzi.css' %}" rel="stylesheet">
+
+            {% endblock %}
+                    <link rel="stylesheet" type="text/css" href="{% static "rest_framework/css/prettify.css" %}"/>
+                    <link rel="stylesheet" type="text/css" href="{% static "rest_framework/css/default.css" %}"/>
+        {% endblock %}
+
+        {% block script %}
+            <script src="{% static 'js/jquery1.11.1.min.js' %}"></script>
+            <script src="{% static 'js/jquery.formset.js' %}"></script>
+{#            <script src="{% static 'js/mustache.js' %}"></script>#}
+            <script src="{% static 'bootstrap-3.2.0-dist/js/bootstrap.min.js' %}"></script>
+            <script src="{% static "rest_framework/js/prettify-min.js" %}"></script>
+            <script src="{% static 'rest_framework/js/default.js' %}"></script>
+
+            <script type="text/javascript" src="{% static 'videojs/video-js/video.js'%}"></script>
+            {#      Old youtube plugin      #}
+{#          <script type="text/javascript" src="{% static 'videojs/plugins/youtube/vjs.youtube.js'%}"></script>#}
+
+            {#      New youtube plugin      #}
+            <script type="text/javascript" src="{% static 'videojs/plugins/youtube/youtube.js'%}"></script>
+            <script type="text/javascript" src="{% static 'videojs/plugins/video-markers/videojs.markers.js'%}"></script>
+            <script type="text/javascript" src="{% static 'videojs/plugins/video-overlay/videojs-overlay.js'%}"></script>
+{#            <script type="text/javascript" src="{% static 'videojs/plugins/video-seek/videojs-seek.min.js'%}"></script>#}
+{#            <script type="text/javascript" src="{% static 'js/videohandler3.js'%}"></script>#}
+
+            <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+            <script src="{% static 'js/ie10-viewport-bug-workaround.js'%}"></script>
+            <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+            <!--[if lt IE 9]>
+              <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+              <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+            <![endif]-->
+        {% endblock %}
+
+    {% endblock %}
+    </head>
+
+  <body class="{% block bodyclass %}{% endblock %} container otherpages-custom">
+
+  <div class="wrapper" id="main-page-container" aria-hidden="false">
+{% block navbar %}
+    <div class="navbar navbar-default  navbar-text navbar-fixed-top navbar-custom" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class='navbar-brand brand-custom' rel="nofollow" href='/'>
+              <img  src="{% static 'images/logo3.png' %}" alt="Quizzi logo" title="Quizzi: Home Page" style="width: 141px; height: 45px;">
+          </a>
+        </div>
+  <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+       {% if user.is_authenticated %}
+           <li><a class="active" href="/sections/">Sections</a></li>
+           <li><a href="/owner/sections/">My Sections</a></li>
+        {% else %}
+           <li><a href="/">Home</a></li>
+{#           <li><a href="/about/">About</a></li>#}
+       {% endif %}
+
+     </ul>
+   <ul class="nav navbar-nav navbar-right">
+       {% if user.is_authenticated %}
+            <li class="reguser">Welcome, {{ user.username }}!</li>
+            <li><a href="/logout/" title="Logout"> Logout <i class="fa fa-sign-out"></i></a></li>
+       {% else %}
+            <li><a href="/login/" >Sign In <i class="fa fa-sign-in"></i></a></li>
+            <li><a href="/register/">Register <i class="fa fa-user"></i></a></li>
+       {% endif %}
+    </ul>
+  </div>
+   </div>
+</div>
+{% endblock %}
+
+{#    {% block navbar %}#}
+{#    <div class="navbar {% block bootstrap_navbar_variant %}navbar-default  navbar-text navbar-fixed-top navbar-custom{% endblock %} role='navigation'">#}
+{#        <div class="navbar-inner">#}
+{#            <div class="container-fluid">#}
+{#                <span href="/">#}
+{#                    {% block branding %}<a class='navbar-brand brand-custom' rel="nofollow" href='/'> <img src="{% static 'images/logo3.png' %}" alt="Quizzi: Home Page" style="width: 141px; height: 45px;"> </a>{% endblock %}#}
+{#                <ul class="nav pull-right">#}
+{#                    {% block userlinks %}#}
+{#                        {% if user.is_authenticated %}#}
+{#                            <li class="dropdown">#}
+{#                                <a href="#" class="dropdown-toggle reguser" data-toggle="dropdown">#}
+{#                                    {{ user }}#}
+{#                                    <b class="caret"></b>#}
+{#                                </a>#}
+{#                                <ul class="dropdown-menu">#}
+{#                                    <li>{% optional_logout request.user %}</li>#}
+{#                                </ul>#}
+{#                            </li>#}
+{#                        {% else %}#}
+{#                            <li>{% optional_login request %}</li>#}
+{#                        {% endif %}#}
+{#                    {% endblock %}#}
+{#                </ul>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+{#    {% endblock %}#}
+
+    {% block breadcrumbs %}
+    <ul class="breadcrumb">
+        {% for breadcrumb_name, breadcrumb_url in breadcrumblist %}
+            <li>
+                <a href="{{ breadcrumb_url }}" {% if forloop.last %}class="active"{% endif %}>{{ breadcrumb_name }}</a> {% if not forloop.last %}<span class="divider">&rsaquo;</span>{% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+    {% endblock %}
+
+    {% block section_title %}{% endblock %}
+    {% block section_description %}{% endblock %}
+
+    <!-- Content -->
+    <div id="content">
+    {% block page_content %}
+
+        {% if 'GET' in allowed_methods %}
+            <form id="get-form" class="pull-right">
+                <fieldset>
+                    <div class="btn-group format-selection">
+                        <a class="btn btn-primary js-tooltip" href='{{ request.get_full_path }}' rel="nofollow" title="Make a GET request on the {{ name }} resource">GET</a>
+
+                        <button class="btn btn-primary dropdown-toggle js-tooltip" data-toggle="dropdown" title="Specify a format for the GET request">
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            {% for format in available_formats %}
+                                <li>
+                                    <a class="js-tooltip format-option" href='{% add_query_param request api_settings.URL_FORMAT_OVERRIDE format %}' rel="nofollow" title="Make a GET request on the {{ name }} resource with the format set to `{{ format }}`">{{ format }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                </fieldset>
+            </form>
+        {% endif %}
+
+        {% if options_form %}
+            <form class="button-form" action="{{ request.get_full_path }}" method="POST" class="pull-right">
+                {% csrf_token %}
+                <input type="hidden" name="{{ api_settings.FORM_METHOD_OVERRIDE }}" value="OPTIONS" />
+                <button class="btn btn-primary js-tooltip" title="Make an OPTIONS request on the {{ name }} resource">OPTIONS</button>
+            </form>
+        {% endif %}
+
+        {% if delete_form %}
+            <form class="button-form" action="{{ request.get_full_path }}" method="POST" class="pull-right">
+                {% csrf_token %}
+                <input type="hidden" name="{{ api_settings.FORM_METHOD_OVERRIDE }}" value="DELETE" />
+                <button class="btn btn-danger js-tooltip" title="Make a DELETE request on the {{ name }} resource">DELETE</button>
+            </form>
+        {% endif %}
+
+        <div class="content-main">
+            <div class="page-header"><h1>{{ name }}</h1></div>
+            {% block description %}
+            {{ description }}
+            {% endblock %}
+            <div class="request-info" style="clear: both" >
+                <pre class="prettyprint"><b>{{ request.method }}</b> {{ request.get_full_path }}</pre>
+            </div>
+            <div class="response-info">
+                <pre class="prettyprint"><div class="meta nocode"><b>HTTP {{ response.status_code }} {{ response.status_text }}</b>{% autoescape off %}
+{% for key, val in response_headers.items %}<b>{{ key }}:</b> <span class="lit">{{ val|break_long_headers|urlize_quoted_links }}</span>
+{% endfor %}
+</div>{{ content|urlize_quoted_links }}</pre>{% endautoescape %}
+            </div>
+        </div>
+
+            {% if display_edit_forms %}
+
+                {% if post_form or raw_data_post_form %}
+                <div {% if post_form %}class="tabbable"{% endif %}>
+                    {% if post_form %}
+                    <ul class="nav nav-tabs form-switcher">
+                        <li><a name='html-tab' href="#object-form" data-toggle="tab">HTML form</a></li>
+                        <li><a name='raw-tab' href="#generic-content-form" data-toggle="tab">Raw data</a></li>
+                    </ul>
+                    {% endif %}
+                    <div class="well tab-content">
+                        {% if post_form %}
+                        <div class="tab-pane" id="object-form">
+                            {% with form=post_form %}
+                            <form action="{{ request.get_full_path }}" method="POST" enctype="multipart/form-data" class="form-horizontal">
+                                <fieldset>
+                                    {{ post_form }}
+                                    <div class="form-actions">
+                                        <button class="btn btn-primary" title="Make a POST request on the {{ name }} resource">POST</button>
+                                    </div>
+                                </fieldset>
+                            </form>
+                            {% endwith %}
+                        </div>
+                        {% endif %}
+                        <div {% if post_form %}class="tab-pane"{% endif %} id="generic-content-form">
+                            {% with form=raw_data_post_form %}
+                            <form action="{{ request.get_full_path }}" method="POST" class="form-horizontal">
+                                <fieldset>
+                                    {% include "rest_framework/raw_data_form.html" %}
+                                    <div class="form-actions">
+                                        <button class="btn btn-primary" title="Make a POST request on the {{ name }} resource">POST</button>
+                                    </div>
+                                </fieldset>
+                            </form>
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if put_form or raw_data_put_form or raw_data_patch_form %}
+                <div {% if put_form %}class="tabbable"{% endif %}>
+                    {% if put_form %}
+                    <ul class="nav nav-tabs form-switcher">
+                        <li><a name='html-tab' href="#object-form" data-toggle="tab">HTML form</a></li>
+                        <li><a  name='raw-tab' href="#generic-content-form" data-toggle="tab">Raw data</a></li>
+                    </ul>
+                    {% endif %}
+                    <div class="well tab-content">
+                        {% if put_form %}
+                        <div class="tab-pane" id="object-form">
+                            <form action="{{ request.get_full_path }}" method="POST" enctype="multipart/form-data" class="form-horizontal">
+                                <fieldset>
+                                    {{ put_form }}
+                                    <div class="form-actions">
+                                        <button class="btn btn-primary js-tooltip" name="{{ api_settings.FORM_METHOD_OVERRIDE }}" value="PUT" title="Make a PUT request on the {{ name }} resource">PUT</button>
+                                    </div>
+                                </fieldset>
+                            </form>
+                        </div>
+                        {% endif %}
+                        <div {% if put_form %}class="tab-pane"{% endif %} id="generic-content-form">
+                            {% with form=raw_data_put_or_patch_form %}
+                            <form action="{{ request.get_full_path }}" method="POST" class="form-horizontal">
+                                <fieldset>
+                                    {% include "rest_framework/raw_data_form.html" %}
+                                    <div class="form-actions">
+                                        {% if raw_data_put_form %}
+                                        <button class="btn btn-primary js-tooltip" name="{{ api_settings.FORM_METHOD_OVERRIDE }}" value="PUT" title="Make a PUT request on the {{ name }} resource">PUT</button>
+                                        {% endif %}
+                                        {% if raw_data_patch_form %}
+                                        <button class="btn btn-primary js-tooltip" name="{{ api_settings.FORM_METHOD_OVERRIDE }}" value="PATCH" title="Make a PATCH request on the {{ name }} resource">PATCH</button>
+                                        {% endif %}
+                                    </div>
+                                </fieldset>
+                            </form>
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% endif %}
+        {% endblock %}
+        </div>
+        <!-- END content-main -->
+
+    </div><!-- ./wrapper -->
+    <!-- END Content -->
+
+        <div id="push"></div>
+
+
+    {% block footer %}
+        <div class="footer">
+            <div class="container">
+                <p>&copy; Quizzi: Interactive and accessible video quizzes 2014</p>
+            </div>
+        </div>
+    {% endblock %}
+
+
+  </body>
+</html>

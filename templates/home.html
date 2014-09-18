@@ -1,0 +1,52 @@
+{% extends 'rest_framework/base.html' %}
+{% load static %}
+{% load url from future %}
+
+{% block title %}Home page {% endblock %}
+{% block breadcrumbs %}{% endblock %}
+{% block bodyclass %}mainpage-custom bar{% endblock %}
+
+{% block page_content %}
+    <div class="container">
+
+      <!-- Main component for a primary marketing message or call to action -->
+      <div class="jumbotron col-md-12 well">
+        <div class="col-md-5">
+        <h1 style="color: #592323;">Quizzi</h1>
+        <h3>Accessible Interactive Video Quizzes for E-learning Systems</h3>
+        <p>No matter how you use video <strong>interactive</strong> video is more effective</p>
+        <p>Video is one of the most effective teaching tools. As a teacher, or a corporate trainer, synchronized quizzes will engage the audience and help measure outcomes.</p>
+        </div>
+        <div class="col-md-7"><img  src="{% static 'images/concept-with-video.png' %}" class=" img-responsive" alt="Generic placeholder image" ></div>
+      </div>
+
+    </div> <!-- /container -->
+<!-- Marketing messaging and featurettes
+    ================================================== -->
+    <!-- Wrap the rest of the page in another container to center all the content. -->
+
+    <div class="container marketing marketing-custom col-md-offset-1">
+
+      <!-- Three columns of text below the carousel -->
+      <div class="row">
+        <div class="col-lg-4">
+          <img class="img-circle"  src="{% static 'images/youtube.png' %}" alt="Generic placeholder image" style="width: 100px; height: 100px;">
+            <h3>Interactive</h3>
+{#          <p>The system supports various videos from Youtube and </p>#}
+        </div><!-- /.col-lg-4 -->
+        <div class="col-lg-4">
+          <img class="img-circle" src="{% static 'images/quiz.png' %}" alt="Generic placeholder image" style="width: 100px; height: 100px;">
+          <h3>Effective</h3>
+{#          <p>Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Cras mattis consectetur purus sit amet fermentum. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh.</p>#}
+        </div><!-- /.col-lg-4 -->
+        <div class="col-lg-4">
+          <img class="img-circle" src="{% static 'images/html5.png' %}" alt="Generic placeholder image" style="width: 100px; height: 100px;">
+          <h3>Accessible</h3>
+{#          <p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>#}
+        </div><!-- /.col-lg-4 -->
+      </div><!-- /.row -->
+    </div>
+
+{% endblock %}
+
+

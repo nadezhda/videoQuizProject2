@@ -1,0 +1,38 @@
+{% extends 'rest_framework/base.html' %}
+{% load static %}
+{% load url from future %}
+
+{% block title %}Edit {{ section.title}}{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+
+{% block section_title %}<h1> Edit {{ section.title}}</h1>{% endblock %}
+{% block page_content %}
+
+
+<form action="/owner/sections/" method="post" data-selector=".discussion-sidebar" data-container="">
+{% csrf_token %}
+<input name="url" type="hidden" value="{{ section.url }}">
+<p>
+<input name="title" type="text" placeholder="ask" value="{{ section.title }}">
+</p>
+<p>
+<input name="category" type="text" placeholder="offer" value="{{ section.category }}">
+</p>
+<input type="submit" value="Save" />
+</form>
+{#<form role="form">#}
+{#  <div class="form-group">#}
+{#    <label for="sectionTitle">Title</label>#}
+{#    <input type="text" class="form-control" id="sectionTitle" value="{{section.title}}">#}
+{#  </div>#}
+{#  <div class="form-group">#}
+{#    <label for="categoryList">Category</label>#}
+{#    <select class="form-control" id="categoryList">#}
+{#        {% for sec in section %}#}
+{#            <option class="category-item">{{section.category.name}}</option>#}
+{#        {% endfor %}#}
+{#    </select>#}
+{#  </div>#}
+{#</form>#}
+
+{% endblock %}

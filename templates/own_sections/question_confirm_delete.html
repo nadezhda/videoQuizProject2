@@ -1,0 +1,15 @@
+{% extends 'rest_framework/base.html' %}
+{% load url from future %}
+
+{% block title %}Delete confirmation{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+
+{% block section_title %}<h1> Delete confirmation </h1>{% endblock %}
+
+{% block page_content %}
+<form method="post">{% csrf_token %}
+    Are you sure you want to delete "{{ object }}"<br />
+    <button id='delete-btn' class="btn  btn-danger btn-sm" type="submit" title="Delete"><i class="fa fa-trash-o"></i> Delete</button>
+    <a href="/owner/sections/" id='cancel-btn' class="btn  btn-default btn-sm" title="Cancel"><i class="fa fa-times"></i> Cancel</a>
+</form>
+{% endblock %}

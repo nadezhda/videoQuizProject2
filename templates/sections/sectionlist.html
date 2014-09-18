@@ -1,0 +1,57 @@
+{% extends 'rest_framework/base.html' %}
+{% load url from future %}
+
+{% block title %}Sections{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+
+{% block section_title %}<h2 class="col-md-offset-3"> Sections </h2>{% endblock %}
+
+
+{% block page_content %}
+    <div class= 'container col-md-6 col-md-offset-3'>
+    <div class="">
+        <select class="form-control" id="categoryDdList">
+            <option class="category-item">All categories</option>
+            {% for category in categories %}
+                <option class="category-item">{{category}}</option>
+            {% endfor %}
+        </select>
+    </div>
+        <div class="wrapper section-list-block">
+            <ol class="section-list">
+                {% for section in sections %}
+                    <li><a href='/sections/{{ section.id }}'>{{ section.title }}</a></li>
+                {% endfor %}
+
+            </ol>
+        </div>
+    </div>
+    <script>
+            $('#categoryDdList').change(function() {
+                /**
+                * --------------------------------------------------
+                * Drop Down List change handler
+                * ---------------------------------------------------
+                */
+                $('.section-list').empty();
+                var selectedCategory = $(this).find(":selected").text();
+                {% for section in sections %}
+
+                    var category = '{{ section.category.name }}';
+                    var section = '{{ section.title }}';
+                    if (category == selectedCategory){
+                        $('.section-list').append("<li><a href='/sections/{{ section.id }}'>{{ section.title }}</a></li>");
+                    }
+                {% endfor %}
+
+                if(selectedCategory == 'All categories'){
+                    $('.section-list').empty();
+                    {% for section in sections %}
+                        $('.section-list').append("<li><a href='/sections/{{ section.id }}'>{{ section.title }}</a></li>");
+                    {% endfor %}
+                }
+
+            });
+
+    </script>
+{% endblock %}

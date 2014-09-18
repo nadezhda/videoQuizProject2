@@ -1,0 +1,136 @@
+{% extends 'rest_framework/base.html' %}
+{% load static %}
+{% load url from future %}
+
+{% block title %}Add new question{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+
+{% block section_title %}<h3>Add new question</h3>{% endblock %}
+
+{% block page_content %}
+    <script type="text/javascript">
+        $(function() {
+            $(".inline.{{ question_form.prefix }}").formset({
+                prefix: "{{ question_form.prefix }}"
+            })
+        })
+
+        $(window).load(function() {
+            $(".add-row").addClass("btn btn-success btn-sm col-md-2");
+            $(".add-row").text("Add answer");
+
+         });
+
+    </script>
+
+    {#  Question form  #}
+    <div class=" well col-md-6">
+        <form method="post">{% csrf_token %}
+
+        {#  Question type  #}
+        <div class="form-group">
+            <label for="id_quiz_type" >* Question type: </label>
+            <select id ="id_quiz_type" name="quiz_type" class="form-control">
+                {% for value,data in form.fields.quiz_type.choices %}
+                    <option value="{{ value }}">{{ data }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {#  Question text  #}
+        <div class="form-group">
+            <label for="id_question">* Question: </label>
+            <input id="id_question" type="text" name="question" class="form-control" placeholder="Question">
+        </div>
+        <div class="row">
+            {#  Marker time  #}
+            <div class="form-group col-md-3">
+                <label for="id_markerTime">* Save at: </label>
+                <input id="id_markerTime" type="number" name="markerTime" class="form-control" placeholder="seconds">
+            </div>
+
+            {#  Replay time  #}
+            <div class="form-group col-md-3">
+                <label for="id_replayTime">* Replay from: </label>
+                <input id="id_replayTime" type="number" name="replayTime" class="form-control" placeholder="seconds">
+            </div>
+        </div>
+
+        <div class="row">
+            {#  Value  #}
+            <div class="form-group col-md-3">
+                <label for="id_value">Value: </label>
+                <input id="id_value" type="number" name="value" class="form-control" value="0">
+            </div>
+
+            {#  Penalty  #}
+            <div class="form-group col-md-3">
+                <label for="id_penalty">Penalty: </label>
+                <input id="id_penalty" type="number" name="penalty" class="form-control" value="0">
+            </div>
+        </div>
+
+        {#  Feedback  #}
+        <div class="form-group">
+            <label for="id_feedback">Feedback message: </label>
+            <input id="id_feedback" type="text" name="feedback" class="form-control" value="Correct">
+        </div>
+
+        {#  Hint  #}
+        <div class="form-group">
+            <label for="id_hint">Hint: </label>
+            <input id="id_hint" type="text" name="hint" class="form-control" value="Incorrect">
+        </div>
+
+{#        <div>#}
+{#           {{ form.as_p }}#}
+{#       </div>#}
+
+
+       <fieldset>
+        <legend> <h3>Answers</h3> </legend>
+        {% for form in question_form %}
+            {{ form.id }}
+            <div class="col-md-12 form-inline inline {{ question_form.prefix }}">
+                {{ form.answer.errors }}
+{#                 <label for="{{ form.answer.id_for_label }}">Answer: </label>#}
+                <div class="input-group col-md-11">
+                  <span class="input-group-addon" style="width:8%">
+                    <input id="{{ form.is_answer_correct.id_for_label }}" type="checkbox"  name="{{ form.is_answer_correct.html_name }}">
+                  </span>
+                    <input id="{{ form.answer.id_for_label }}" type="text" name="{{ form.answer.html_name }}" class="form-control" placeholder="Answer">
+                </div><!-- /input-group -->
+
+{#                <div class="form-group">#}
+{#                    <label for="{{ form.answer.id_for_label }}">Answer: </label>#}
+{#                    <input id="{{ form.is_answer_correct.id_for_label }}" type="checkbox" class="col-md-1" name="{{ form.is_answer_correct.html_name }}">#}
+{#                    <input id="{{ form.answer.id_for_label }}" type="text" name="{{ form.answer.html_name }}" class="form-control col-md-2" placeholder="Answer">#}
+{#                </div>#}
+{#                {{ form.answer.label_tag }}#}
+{#                {{ form.is_answer_correct }}#}
+{#                {{ form.answer }}#}
+
+
+            </div>
+        {% endfor %}
+        {{ question_form.management_form }}
+        {{ question_form.non_form_errors }}
+        </fieldset>
+        <div class="row pull-right" style="margin-right: 1px;">
+            <button id='create-section-btn' class="btn  btn-primary btn-sm" type="submit" title="Create"><i class="fa fa-plus"></i> Add question</button>
+            <a href="{% url 'owner-section-list'%}" id='cancel-btn' class="btn  btn-default btn-sm" title="Cancel"><i class="fa fa-times"></i> Cancel</a>
+{#          <button id='cancel-btn' class="btn  btn-default btn-sm" name="cancel" type="submit" title="Cancel"><i class="fa fa-times"></i> Cancel</button>#}
+        </div>
+        </form>
+    </div>
+
+
+    {#  Video  #}
+    <div class="col-md-6">
+{#        <video id="my-video" src="" class="video-js vjs-default-skin vjs-big-play-centered embed-responsive-item" controls preload="auto" width='auto' height='auto'#}
+{#        data-setup='{ "techOrder": ["youtube"], "src": "{{ section.video_url }}","seek_param": "time" }'>#}
+{#        </video>    #}
+    {{ section }}
+    </div>
+
+{% endblock %}
